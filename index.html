@@ -1,62 +1,56 @@
 <!DOCTYPE html>
-
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <title>Download Hub by Dilawar</title>
 
 <style>
 body {
-    background: linear-gradient(135deg,#1f3c44,#2c5364);
-    color:white;
     font-family: Arial;
-    text-align:center;
+    background: linear-gradient(to right, #2c5364, #203a43, #0f2027);
+    color: white;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+
+h1 {
+    padding: 20px;
 }
 
 .container {
-    width:70%;
-    margin:auto;
-}
-
-input {
-    width:60%;
-    padding:12px;
-    border-radius:10px;
-    border:none;
-    margin:20px;
+    width: 80%;
+    margin: auto;
 }
 
 .card {
-    background:#3b5b63;
-    padding:20px;
-    margin:20px;
-    border-radius:12px;
-    box-shadow:0 0 10px rgba(0,0,0,0.4);
+    background: #3b5c66;
+    padding: 20px;
+    margin: 20px 0;
+    border-radius: 15px;
 }
 
 button {
-    padding:10px 15px;
-    border:none;
-    border-radius:8px;
-    margin:5px;
-    cursor:pointer;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    margin: 5px;
+    cursor: pointer;
 }
 
-.download { background:#ff5733; color:white; }
-.preview { background:#3498db; color:white; }
-
-.progress {
-    width:100%;
-    background:#222;
-    border-radius:10px;
-    overflow:hidden;
-    margin-top:10px;
+.download {
+    background: #ff5c33;
+    color: white;
 }
 
-.bar {
-    width:0%;
-    height:10px;
-    background:lime;
+.preview {
+    background: #3498db;
+    color: white;
+}
+
+video {
+    width: 100%;
+    margin-top: 10px;
 }
 </style>
 
@@ -68,102 +62,31 @@ button {
 
 <div class="container">
 
-<input type="text" id="search" placeholder="🔍 Search file...">
+    <div class="card">
+        <h2>Dhurandhar 2025 Hindi HDTC 720p</h2>
 
-<div id="list"></div>
+        <!-- Download Button -->
+        <a href="https://drive.google.com/uc?export=download&id=1arBd0f0OglgXzQFpKkgudIfi9b9NwuYr">
+            <button class="download">⬇ Download</button>
+        </a>
+
+        <!-- Preview Button -->
+        <button class="preview" onclick="showVideo()">▶ Preview</button>
+
+        <!-- Video -->
+        <div id="videoBox" style="display:none;">
+            <video controls>
+                <source src="https://drive.google.com/uc?export=download&id=1arBd0f0OglgXzQFpKkgudIfi9b9NwuYr" type="video/mp4">
+            </video>
+        </div>
+    </div>
 
 </div>
 
 <script>
-
-let allFiles = [];
-let downloads = {};
-
-async function loadFiles() {
-    let res = await fetch("/files");
-    let text = await res.text();
-
-    allFiles = text.split(",");
-    showFiles(allFiles);
+function showVideo() {
+    document.getElementById("videoBox").style.display = "block";
 }
-
-function showFiles(files) {
-    let list = document.getElementById("list");
-    list.innerHTML = "";
-
-    files.forEach(file => {
-        if(file.trim() !== "") {
-
-            if(!downloads[file]) downloads[file] = 0;
-
-            let div = document.createElement("div");
-            div.className = "card";
-
-            div.innerHTML = `
-                <h3>${file}</h3>
-                <p>Downloads: ${downloads[file]}</p>
-
-                <button class="download" onclick="downloadFile('${file}', this)">
-                    ⬇ Download
-                </button>
-
-                <button class="preview" onclick="previewFile('${file}', this)">
-                    ▶ Preview
-                </button>
-
-                <div class="progress">
-                    <div class="bar"></div>
-                </div>
-
-                <div class="video"></div>
-            `;
-
-            list.appendChild(div);
-        }
-    });
-}
-
-function downloadFile(file, btn) {
-
-    downloads[file]++;
-    showFiles(allFiles);
-
-    let bar = btn.parentElement.querySelector(".bar");
-
-    let width = 0;
-    let interval = setInterval(() => {
-        width += 10;
-        bar.style.width = width + "%";
-
-        if(width >= 100) clearInterval(interval);
-    }, 200);
-
-    window.open("/download?file=" + encodeURIComponent(file), "_blank");
-}
-
-function previewFile(file, btn) {
-
-    let videoDiv = btn.parentElement.querySelector(".video");
-
-    videoDiv.innerHTML = `
-        <video width="400" controls>
-            <source src="/preview?file=${encodeURIComponent(file)}">
-        </video>
-    `;
-}
-
-document.getElementById("search").addEventListener("input", function(){
-    let value = this.value.toLowerCase();
-
-    let filtered = allFiles.filter(f =>
-        f.toLowerCase().includes(value)
-    );
-
-    showFiles(filtered);
-});
-
-loadFiles();
-
 </script>
 
 </body>

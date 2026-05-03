@@ -3,143 +3,150 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Download Hub by Dilawar</title>
+<title>Download Hub Pro Max</title>
 
 <style>
-body {
+body{
   margin:0;
-  font-family: Arial;
+  font-family:Arial;
   background:#0b132b;
   color:white;
 }
 
 /* HEADER */
 header{
-  text-align:center;
   padding:15px;
-  background:#0f172a;
+  text-align:center;
   font-size:22px;
+  background:#020617;
+}
+
+/* HERO */
+.hero{
+  height:300px;
+  background:url('https://i.imgur.com/3ZQ3Z6K.jpg') center/cover;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:28px;
   font-weight:bold;
 }
 
 /* SEARCH */
-.search-box{
+.search{
   width:80%;
-  margin:20px auto;
+  margin:15px auto;
 }
-.search-box input{
+.search input{
   width:100%;
-  padding:12px;
+  padding:10px;
   border-radius:10px;
   border:none;
-  font-size:16px;
 }
 
-/* MOVIE GRID */
-.movies{
+/* CATEGORY */
+.section{
+  padding:10px 20px;
+}
+.section h2{
+  margin-bottom:10px;
+}
+
+/* SCROLL ROW */
+.row{
   display:flex;
-  flex-wrap:wrap;
-  gap:25px;
-  padding:20px;
-  justify-content:center;
+  overflow-x:auto;
+  gap:15px;
+  padding-bottom:10px;
 }
 
 /* CARD */
 .card{
+  min-width:180px;
   background:#1e293b;
-  border-radius:15px;
-  width:230px;
+  border-radius:10px;
   overflow:hidden;
   transition:0.3s;
-  box-shadow:0 5px 15px rgba(0,0,0,0.4);
 }
 
-/* HOVER EFFECT (NETFLIX STYLE) */
 .card:hover{
-  transform:scale(1.1);
-  z-index:10;
+  transform:scale(1.15);
+  box-shadow:0 0 20px rgba(255,0,0,0.6);
 }
 
-/* IMAGE */
 .card img{
   width:100%;
-  height:320px;
+  height:250px;
   object-fit:cover;
 }
 
-/* TITLE */
-.card h3{
+.card h4{
   text-align:center;
-  padding:10px;
-  font-size:18px;
+  padding:5px;
 }
 
 /* BUTTONS */
-.buttons{
+.btns{
   display:flex;
   justify-content:space-around;
-  padding:10px;
+  padding:8px;
 }
+.watch{background:#3b82f6;padding:5px 8px;border-radius:5px;color:white;text-decoration:none;}
+.download{background:#ef4444;padding:5px 8px;border-radius:5px;color:white;text-decoration:none;}
 
-.watch{
-  background:#3b82f6;
-  padding:8px 12px;
-  border-radius:8px;
-  text-decoration:none;
-  color:white;
-}
-
-.download{
-  background:#ef4444;
-  padding:8px 12px;
-  border-radius:8px;
-  text-decoration:none;
-  color:white;
-}
-
-/* ADMIN PANEL */
+/* ADMIN */
 .admin{
   position:fixed;
-  right:20px;
   bottom:20px;
+  right:20px;
   background:#111827;
   padding:15px;
   border-radius:10px;
 }
-
 .admin input{
   display:block;
   margin:5px 0;
-  padding:8px;
+  padding:6px;
   width:200px;
 }
-
 .admin button{
+  width:100%;
+  padding:6px;
   background:green;
   color:white;
   border:none;
-  padding:8px;
-  width:100%;
 }
 </style>
 </head>
 
 <body>
 
-<header>🚀 Download Hub by Dilawar</header>
+<header>🚀 Download Hub PRO MAX</header>
 
-<div class="search-box">
-  <input type="text" id="search" placeholder="Search movies...">
+<div class="hero">🔥 Trending Movies</div>
+
+<div class="search">
+<input type="text" id="search" placeholder="Search movies...">
 </div>
 
-<div class="movies" id="movies"></div>
+<!-- TRENDING -->
+<div class="section">
+<h2>🔥 Trending</h2>
+<div class="row" id="trending"></div>
+</div>
 
-<!-- ADMIN PANEL -->
+<!-- ALL MOVIES -->
+<div class="section">
+<h2>🎬 All Movies</h2>
+<div class="row" id="movies"></div>
+</div>
+
+<!-- ADMIN -->
 <div class="admin">
-  <input id="title" placeholder="Movie Title">
-  <input id="poster" placeholder="Poster URL">
-  <input id="link" placeholder="Telegram Link">
-  <button onclick="addMovie()">Add Movie</button>
+<input id="title" placeholder="Title">
+<input id="poster" placeholder="Poster URL">
+<input id="link" placeholder="Telegram Link">
+<button onclick="addMovie()">Add</button>
 </div>
 
 <!-- FIREBASE -->
@@ -152,67 +159,57 @@ const firebaseConfig = {
   authDomain: "downlode-hub-by-dilawar.firebaseapp.com",
   databaseURL: "https://downlode-hub-by-dilawar-default-rtdb.firebaseio.com",
   projectId: "downlode-hub-by-dilawar",
-  storageBucket: "downlode-hub-by-dilawar.appspot.com",
-  messagingSenderId: "464345954287",
-  appId: "1:464345954287:web:457e765158dadb2302681a"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
 const moviesDiv = document.getElementById("movies");
+const trendingDiv = document.getElementById("trending");
 
-/* LOAD MOVIES */
-onValue(ref(db,"movies"), snapshot=>{
+/* LOAD DATA */
+onValue(ref(db,"movies"), snap=>{
   moviesDiv.innerHTML="";
-  snapshot.forEach(child=>{
-    const movie = child.val();
+  trendingDiv.innerHTML="";
 
-    const card = document.createElement("div");
-    card.className="card";
+  let count = 0;
 
-    card.innerHTML = `
-      <img src="${movie.poster}" 
-      onerror="this.src='https://via.placeholder.com/300x450?text=No+Image'">
-      <h3>${movie.title}</h3>
-      <div class="buttons">
-        <a class="watch" href="${movie.link}" target="_blank">▶ Watch</a>
-        <a class="download" href="${movie.link}" target="_blank">⬇ Download</a>
+  snap.forEach(child=>{
+    const m = child.val();
+
+    const html = `
+    <div class="card">
+      <img src="${m.poster}" onerror="this.src='https://via.placeholder.com/200x300'">
+      <h4>${m.title}</h4>
+      <div class="btns">
+        <a class="watch" href="${m.link}" target="_blank">Watch</a>
+        <a class="download" href="${m.link}" target="_blank">DL</a>
       </div>
-    `;
+    </div>`;
 
-    moviesDiv.appendChild(card);
+    moviesDiv.innerHTML += html;
+
+    if(count < 5){
+      trendingDiv.innerHTML += html;
+      count++;
+    }
   });
 });
 
-/* ADD MOVIE */
-window.addMovie = function(){
+/* ADD */
+window.addMovie = ()=>{
   const title = document.getElementById("title").value;
   const poster = document.getElementById("poster").value;
   const link = document.getElementById("link").value;
 
-  if(!title || !poster || !link){
-    alert("Fill all fields");
-    return;
-  }
-
-  push(ref(db,"movies"),{
-    title,poster,link
-  });
-
-  document.getElementById("title").value="";
-  document.getElementById("poster").value="";
-  document.getElementById("link").value="";
+  push(ref(db,"movies"),{title,poster,link});
 }
 
 /* SEARCH */
-document.getElementById("search").addEventListener("input", function(){
-  const value = this.value.toLowerCase();
-  const cards = document.querySelectorAll(".card");
-
-  cards.forEach(card=>{
-    const text = card.innerText.toLowerCase();
-    card.style.display = text.includes(value) ? "block" : "none";
+document.getElementById("search").addEventListener("input",function(){
+  let val = this.value.toLowerCase();
+  document.querySelectorAll(".card").forEach(c=>{
+    c.style.display = c.innerText.toLowerCase().includes(val) ? "block":"none";
   });
 });
 </script>

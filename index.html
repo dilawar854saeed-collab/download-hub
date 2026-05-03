@@ -6,12 +6,39 @@
 <title>Download Hub by Dilawar</title>
 
 <style>
-body {margin:0;font-family:Arial;background:#0b132b;color:white;}
-header {text-align:center;padding:20px;font-size:26px;font-weight:bold;}
-.search {width:80%;margin:20px auto;display:block;padding:12px;border-radius:10px;border:none;}
+body {
+  margin:0;
+  font-family:Arial;
+  background:#0b132b;
+  color:white;
+}
 
-.section {padding:20px;}
-.grid {display:flex;flex-wrap:wrap;gap:20px;}
+header {
+  text-align:center;
+  padding:20px;
+  font-size:26px;
+  font-weight:bold;
+}
+
+.search {
+  width:80%;
+  margin:20px auto;
+  display:block;
+  padding:12px;
+  border-radius:10px;
+  border:none;
+  font-size:16px;
+}
+
+.section {
+  padding:20px;
+}
+
+.grid {
+  display:flex;
+  flex-wrap:wrap;
+  gap:20px;
+}
 
 .card {
   width:200px;
@@ -20,16 +47,39 @@ header {text-align:center;padding:20px;font-size:26px;font-weight:bold;}
   overflow:hidden;
   transition:0.3s;
 }
-.card:hover {transform:scale(1.08);}
-.card img {width:100%;height:280px;object-fit:cover;}
 
-.title {text-align:center;padding:8px;}
+.card:hover {
+  transform:scale(1.08);
+}
 
-.buttons {display:flex;justify-content:space-around;padding:10px;}
-.btn {padding:6px 10px;border:none;border-radius:8px;cursor:pointer;}
-.watch {background:#3a86ff;color:white;}
-.download {background:#ff006e;color:white;}
+.card img {
+  width:100%;
+  height:280px;
+  object-fit:cover;
+}
 
+.title {
+  text-align:center;
+  padding:8px;
+}
+
+.buttons {
+  display:flex;
+  justify-content:space-around;
+  padding:10px;
+}
+
+.btn {
+  padding:6px 10px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+}
+
+.watch { background:#3a86ff; color:white; }
+.download { background:#ff006e; color:white; }
+
+/* ADMIN */
 .admin {
   position:fixed;
   bottom:20px;
@@ -51,7 +101,11 @@ header {text-align:center;padding:20px;font-size:26px;font-weight:bold;}
   display:none;
 }
 
-input {width:100%;margin:5px 0;padding:8px;}
+input {
+  width:100%;
+  margin:5px 0;
+  padding:8px;
+}
 </style>
 </head>
 
@@ -61,11 +115,13 @@ input {width:100%;margin:5px 0;padding:8px;}
 
 <input class="search" placeholder="Search movies..." onkeyup="searchMovie(this.value)">
 
+<!-- TRENDING -->
 <div class="section">
   <h2>🔥 Trending</h2>
   <div class="grid" id="trending"></div>
 </div>
 
+<!-- ALL MOVIES -->
 <div class="section">
   <h2>🎬 All Movies</h2>
   <div class="grid" id="allMovies"></div>
@@ -90,6 +146,7 @@ input {width:100%;margin:5px 0;padding:8px;}
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
 import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-database.js";
 
+/* FIREBASE CONFIG */
 const firebaseConfig = {
   apiKey: "AIzaSyDPq7MhUJZsLXd-KseYkXY04aWVkoUtT9A",
   authDomain: "downlode-hub-by-dilawar.firebaseapp.com",
@@ -105,86 +162,90 @@ const db = getDatabase(app);
 
 const API_KEY = "9c2740d400d5fcab8638d58c8ce9454b";
 
-// GET POSTER
+let allMoviesData = [];
+
+/* GET POSTER */
 async function getPoster(name){
-  let res = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&query=${name}`);
-  let data = await res.json();
-  if(data.results.length > 0){
-    return "https://image.tmdb.org/t/p/w500" + data.results[0].poster_path;
-  }
+  try{
+    let res = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&query=${name}`);
+    let data = await res.json();
+    if(data.results && data.results.length > 0){
+      return "https://image.tmdb.org/t/p/w500" + data.results[0].poster_path;
+    }
+  }catch(e){}
   return "https://via.placeholder.com/300x450";
 }
 
-// ADD MOVIE (SAVE TO FIREBASE)
+/* ADD MOVIE */
 window.addMovie = async function(){
   let name = document.getElementById("name").value;
   let link = document.getElementById("link").value;
 
+  if(!name || !link){
+    alert("Fill all fields");
+    return;
+  }
+
   let poster = await getPoster(name);
 
   push(ref(db,"movies"), {
-    name, link, poster
+    name: name,
+    link: link,
+    poster: poster
   });
 }
 
-// LOAD FROM FIREBASE (REAL FIX)
-function loadMovies(){
-  onValue(ref(db,"movies"), snapshot=>{
-    let data = snapshot.val() || {};
+/* RENDER MOVIES */
+function renderMovies(arr){
+  let trending = document.getElementById("trending");
+  let all = document.getElementById("allMovies");
 
-    let trending = document.getElementById("trending");
-    let all = document.getElementById("allMovies");
+  trending.innerHTML="";
+  all.innerHTML="";
 
-    trending.innerHTML="";
-    all.innerHTML="";
+  arr.forEach((m,i)=>{
+    let title = m.name || "No Title";
+    let poster = m.poster || "https://via.placeholder.com/300x450";
+    let link = m.link || "#";
 
-    let arr = Object.values(data);
+    let card = `
+    <div class="card">
+      <img src="${poster}">
+      <div class="title">${title}</div>
+      <div class="buttons">
+        <button class="btn watch" onclick="window.open('${link}')">Watch</button>
+        <button class="btn download" onclick="window.open('${link}')">Download</button>
+      </div>
+    </div>`;
 
-    arr.forEach((m,i)=>{
-      let card = `
-      <div class="card">
-        <img src="${m.poster}">
-        <div class="title">${m.name}</div>
-        <div class="buttons">
-          <button class="btn watch" onclick="window.open('${m.link}')">Watch</button>
-          <button class="btn download" onclick="window.open('${m.link}')">Download</button>
-        </div>
-      </div>`;
-
-      if(i < 3) trending.innerHTML += card;
-      all.innerHTML += card;
-    });
+    if(i < 3) trending.innerHTML += card;
+    all.innerHTML += card;
   });
 }
 
-loadMovies();
+/* LOAD FROM FIREBASE */
+onValue(ref(db,"movies"), snapshot=>{
+  let data = snapshot.val();
 
-// SEARCH
+  if(!data){
+    allMoviesData = [];
+    renderMovies([]);
+    return;
+  }
+
+  allMoviesData = Object.values(data);
+  renderMovies(allMoviesData);
+});
+
+/* SEARCH */
 window.searchMovie = function(val){
-  onValue(ref(db,"movies"), snapshot=>{
-    let data = snapshot.val() || {};
-    let arr = Object.values(data);
-
-    let filtered = arr.filter(m => m.name.toLowerCase().includes(val.toLowerCase()));
-
-    let all = document.getElementById("allMovies");
-    all.innerHTML="";
-
-    filtered.forEach(m=>{
-      all.innerHTML += `
-      <div class="card">
-        <img src="${m.poster}">
-        <div class="title">${m.name}</div>
-        <div class="buttons">
-          <button class="btn watch" onclick="window.open('${m.link}')">Watch</button>
-          <button class="btn download" onclick="window.open('${m.link}')">Download</button>
-        </div>
-      </div>`;
-    });
-  });
+  let filtered = allMoviesData.filter(m =>
+    (m.name || "").toLowerCase().includes(val.toLowerCase())
+  );
+  renderMovies(filtered);
 }
 
-// LOGIN FIX
+/* LOGIN */
 document.addEventListener("keydown", function(e){
   if(e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "l"){
     document.getElementById("loginBox").style.display="block";

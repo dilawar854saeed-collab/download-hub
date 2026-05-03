@@ -5,104 +5,122 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Download Hub by Dilawar</title>
 
-<!-- SEO -->
-<meta name="description" content="Download Hub by Dilawar - Movies Download & Watch">
-<meta name="keywords" content="movies, download, telegram movies">
-<meta name="author" content="Dilawar">
-
 <style>
 body {
-  margin: 0;
+  margin:0;
   font-family: Arial;
-  background: #0f172a;
-  color: white;
+  background:#0b132b;
+  color:white;
 }
 
 /* HEADER */
-header {
-  text-align: center;
-  padding: 15px;
-  background: #020617;
-  font-size: 22px;
-  font-weight: bold;
+header{
+  text-align:center;
+  padding:15px;
+  background:#0f172a;
+  font-size:22px;
+  font-weight:bold;
 }
 
 /* SEARCH */
-.search {
-  width: 90%;
-  margin: 15px auto;
-  display: block;
-  padding: 10px;
-  border-radius: 10px;
-  border: none;
+.search-box{
+  width:80%;
+  margin:20px auto;
+}
+.search-box input{
+  width:100%;
+  padding:12px;
+  border-radius:10px;
+  border:none;
+  font-size:16px;
 }
 
-/* GRID */
-.movies {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px,1fr));
-  gap: 15px;
-  padding: 15px;
+/* MOVIE GRID */
+.movies{
+  display:flex;
+  flex-wrap:wrap;
+  gap:25px;
+  padding:20px;
+  justify-content:center;
 }
 
 /* CARD */
-.card {
-  background: #1e293b;
-  border-radius: 12px;
-  overflow: hidden;
-  text-align: center;
+.card{
+  background:#1e293b;
+  border-radius:15px;
+  width:230px;
+  overflow:hidden;
+  transition:0.3s;
+  box-shadow:0 5px 15px rgba(0,0,0,0.4);
 }
 
-.card img {
-  width: 100%;
-  height: 220px;
-  object-fit: cover;
+/* HOVER EFFECT (NETFLIX STYLE) */
+.card:hover{
+  transform:scale(1.1);
+  z-index:10;
 }
 
-.card h3 {
-  font-size: 14px;
-  padding: 5px;
+/* IMAGE */
+.card img{
+  width:100%;
+  height:320px;
+  object-fit:cover;
 }
 
-.btns {
-  display: flex;
-  justify-content: space-around;
-  padding: 10px;
+/* TITLE */
+.card h3{
+  text-align:center;
+  padding:10px;
+  font-size:18px;
 }
 
-button {
-  border: none;
-  padding: 6px 10px;
-  border-radius: 6px;
-  cursor: pointer;
+/* BUTTONS */
+.buttons{
+  display:flex;
+  justify-content:space-around;
+  padding:10px;
 }
 
-.watch { background: #3b82f6; color: white; }
-.download { background: #ef4444; color: white; }
-
-/* ADMIN */
-.admin {
-  position: fixed;
-  bottom: 10px;
-  right: 10px;
-  background: #020617;
-  padding: 10px;
-  border-radius: 10px;
+.watch{
+  background:#3b82f6;
+  padding:8px 12px;
+  border-radius:8px;
+  text-decoration:none;
+  color:white;
 }
 
-.admin input {
-  display: block;
-  margin: 5px 0;
-  padding: 5px;
-  width: 180px;
+.download{
+  background:#ef4444;
+  padding:8px 12px;
+  border-radius:8px;
+  text-decoration:none;
+  color:white;
 }
 
-.admin button {
-  width: 100%;
-  background: green;
-  color: white;
+/* ADMIN PANEL */
+.admin{
+  position:fixed;
+  right:20px;
+  bottom:20px;
+  background:#111827;
+  padding:15px;
+  border-radius:10px;
 }
 
+.admin input{
+  display:block;
+  margin:5px 0;
+  padding:8px;
+  width:200px;
+}
+
+.admin button{
+  background:green;
+  color:white;
+  border:none;
+  padding:8px;
+  width:100%;
+}
 </style>
 </head>
 
@@ -110,93 +128,93 @@ button {
 
 <header>🚀 Download Hub by Dilawar</header>
 
-<input type="text" class="search" placeholder="Search movies..." onkeyup="searchMovie(this.value)">
+<div class="search-box">
+  <input type="text" id="search" placeholder="Search movies...">
+</div>
 
-<div id="movies" class="movies"></div>
+<div class="movies" id="movies"></div>
 
 <!-- ADMIN PANEL -->
 <div class="admin">
   <input id="title" placeholder="Movie Title">
-  <input id="img" placeholder="Poster URL">
+  <input id="poster" placeholder="Poster URL">
   <input id="link" placeholder="Telegram Link">
   <button onclick="addMovie()">Add Movie</button>
 </div>
 
 <!-- FIREBASE -->
 <script type="module">
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
 import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDPq7MhUJZsLXd-KseYkXY04aWVkoUtT9A",
   authDomain: "downlode-hub-by-dilawar.firebaseapp.com",
-  databaseURL: "https://downlode-hub-by-dilawar-default-rtdb.firebaseio.com/",
+  databaseURL: "https://downlode-hub-by-dilawar-default-rtdb.firebaseio.com",
   projectId: "downlode-hub-by-dilawar",
-  storageBucket: "downlode-hub-by-dilawar.firebasestorage.app",
+  storageBucket: "downlode-hub-by-dilawar.appspot.com",
   messagingSenderId: "464345954287",
   appId: "1:464345954287:web:457e765158dadb2302681a"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
-const moviesRef = ref(db, "movies");
 
-// SHOW MOVIES
-let allMovies = [];
+const moviesDiv = document.getElementById("movies");
 
-onValue(moviesRef, (snapshot) => {
-  const data = snapshot.val();
-  allMovies = [];
+/* LOAD MOVIES */
+onValue(ref(db,"movies"), snapshot=>{
+  moviesDiv.innerHTML="";
+  snapshot.forEach(child=>{
+    const movie = child.val();
 
-  for (let id in data) {
-    allMovies.push(data[id]);
-  }
+    const card = document.createElement("div");
+    card.className="card";
 
-  renderMovies(allMovies);
+    card.innerHTML = `
+      <img src="${movie.poster}" 
+      onerror="this.src='https://via.placeholder.com/300x450?text=No+Image'">
+      <h3>${movie.title}</h3>
+      <div class="buttons">
+        <a class="watch" href="${movie.link}" target="_blank">▶ Watch</a>
+        <a class="download" href="${movie.link}" target="_blank">⬇ Download</a>
+      </div>
+    `;
+
+    moviesDiv.appendChild(card);
+  });
 });
 
-// RENDER
-function renderMovies(list){
-  const box = document.getElementById("movies");
-  box.innerHTML = "";
-
-  list.forEach(m => {
-    box.innerHTML += `
-    <div class="card">
-      <img src="${m.img}">
-      <h3>${m.title}</h3>
-      <div class="btns">
-        <button class="watch" onclick="openLink('${m.link}')">▶ Watch</button>
-        <button class="download" onclick="openLink('${m.link}')">⬇ Download</button>
-      </div>
-    </div>`;
-  });
-}
-
-// ADD MOVIE
+/* ADD MOVIE */
 window.addMovie = function(){
   const title = document.getElementById("title").value;
-  const img = document.getElementById("img").value;
+  const poster = document.getElementById("poster").value;
   const link = document.getElementById("link").value;
 
-  push(moviesRef, {title, img, link});
-  alert("Movie Added!");
-};
+  if(!title || !poster || !link){
+    alert("Fill all fields");
+    return;
+  }
 
-// OPEN LINK
-window.openLink = function(link){
-  window.open(link,"_blank");
-};
+  push(ref(db,"movies"),{
+    title,poster,link
+  });
 
-// SEARCH
-window.searchMovie = function(val){
-  const filtered = allMovies.filter(m => 
-    m.title.toLowerCase().includes(val.toLowerCase())
-  );
-  renderMovies(filtered);
-};
+  document.getElementById("title").value="";
+  document.getElementById("poster").value="";
+  document.getElementById("link").value="";
+}
 
+/* SEARCH */
+document.getElementById("search").addEventListener("input", function(){
+  const value = this.value.toLowerCase();
+  const cards = document.querySelectorAll(".card");
+
+  cards.forEach(card=>{
+    const text = card.innerText.toLowerCase();
+    card.style.display = text.includes(value) ? "block" : "none";
+  });
+});
 </script>
 
 </body>

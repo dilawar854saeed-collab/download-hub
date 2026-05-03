@@ -3,112 +3,71 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Download Hub by Dilawar</title>
+
+<title>Download Hub by Dilawar | Free Movies Download</title>
+
+<!-- SEO -->
+<meta name="description" content="Download Hub by Dilawar - Watch and download latest HD movies free using Telegram.">
+<meta name="keywords" content="free movies download, telegram movies, HD movies, download hub dilawar">
+<meta name="author" content="Dilawar">
+<link rel="canonical" href="https://charming-arithmetic-8ca6a2.netlify.app">
+
+<!-- Open Graph -->
+<meta property="og:title" content="Download Hub by Dilawar">
+<meta property="og:description" content="Watch and download movies free">
+<meta property="og:type" content="website">
+
+<!-- Favicon -->
+<link rel="icon" href="https://via.placeholder.com/32">
 
 <style>
-body{
-  margin:0;
-  font-family:Arial;
-  background:#0b0f1a;
-  color:#fff;
-}
-
-header{
-  text-align:center;
-  padding:15px;
-  font-size:22px;
-  background:#020617;
-}
+body{margin:0;font-family:Arial;background:#0b0f1a;color:#fff;}
+header{text-align:center;padding:15px;font-size:22px;background:#020617;}
 
 .search{
-  width:90%;
-  margin:10px auto;
-  display:block;
-  padding:12px;
-  border-radius:8px;
-  border:none;
+width:90%;margin:10px auto;display:block;
+padding:12px;border-radius:8px;border:none;font-size:16px;
 }
 
-/* TRENDING */
 .slider{
-  display:flex;
-  overflow-x:auto;
-  gap:10px;
-  padding:10px;
+display:flex;overflow-x:auto;gap:10px;padding:10px;
 }
 
 .slider img{
-  width:180px;
-  border-radius:10px;
-  cursor:pointer;
-  transition:0.3s;
+width:180px;border-radius:10px;cursor:pointer;
+transition:0.3s;
 }
+.slider img:hover{transform:scale(1.1);}
 
-.slider img:hover{
-  transform:scale(1.1);
-}
-
-/* CATEGORY */
-.categories{
-  text-align:center;
-}
-
+.categories{text-align:center;}
 .categories button{
-  margin:5px;
-  padding:8px 15px;
-  border:none;
-  border-radius:20px;
-  background:#1e293b;
-  color:#fff;
-  cursor:pointer;
+margin:5px;padding:8px 15px;border:none;border-radius:20px;
+background:#1e293b;color:#fff;cursor:pointer;
 }
+.categories button.active{background:#22c55e;}
 
-.categories button.active{
-  background:#22c55e;
-}
-
-/* GRID */
 .grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-  gap:15px;
-  padding:15px;
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+gap:15px;padding:15px;
 }
 
 .card{
-  background:#1e293b;
-  border-radius:10px;
-  overflow:hidden;
-  transition:0.3s;
+background:#1e293b;border-radius:10px;
+overflow:hidden;transition:0.3s;
 }
-
-.card:hover{
-  transform:scale(1.05);
-}
+.card:hover{transform:scale(1.05);}
 
 .card img{
-  width:100%;
-  height:240px;
-  object-fit:cover;
+width:100%;height:240px;object-fit:cover;
 }
 
-.card h3{
-  padding:10px;
-  font-size:16px;
-}
+.card h3{padding:10px;font-size:16px;}
 
-.btns{
-  display:flex;
-  gap:5px;
-  padding:10px;
-}
+.btns{display:flex;gap:5px;padding:10px;}
 
 .btns button{
-  flex:1;
-  padding:8px;
-  border:none;
-  border-radius:5px;
-  cursor:pointer;
+flex:1;padding:8px;border:none;border-radius:5px;cursor:pointer;
 }
 
 .watch{background:#3b82f6;color:#fff;}
@@ -126,18 +85,19 @@ header{
 <div class="slider" id="trending"></div>
 
 <div class="categories">
-  <button class="active" onclick="setCategory('all',this)">All</button>
-  <button onclick="setCategory('action',this)">Action</button>
-  <button onclick="setCategory('horror',this)">Horror</button>
-  <button onclick="setCategory('drama',this)">Drama</button>
+<button class="active" onclick="setCategory('all',this)">All</button>
+<button onclick="setCategory('action',this)">Action</button>
+<button onclick="setCategory('horror',this)">Horror</button>
+<button onclick="setCategory('drama',this)">Drama</button>
 </div>
 
 <div class="grid" id="movies"></div>
 
 <script>
 
-// 🎬 MOVIE DATA (EDIT HERE ONLY)
+// MOVIES DATA
 const moviesData = [
+
 {
 title:"Dhurandhar 2025",
 category:"action",
@@ -145,89 +105,79 @@ img:"https://via.placeholder.com/300x400.png?text=Dhurandhar",
 link:"https://t.me/downloadhubdilawar/3",
 trending:true
 },
+
 {
-title:"Horror Night",
-category:"horror",
-img:"https://via.placeholder.com/300x400.png?text=Horror",
-link:"https://t.me/downloadhubdilawar/3",
-trending:true
-},
-{
-title:"Love Story",
-category:"drama",
-img:"https://via.placeholder.com/300x400.png?text=Drama",
-link:"https://t.me/downloadhubdilawar/3",
-trending:false
-},
-{
-title:"How to train your dragon",
+title:"New Movie",
 category:"action",
-img:"https://via.placeholder.com/300x400.png?text=New+Movie",
+img:"https://via.placeholder.com/300x400.png?text=Movie+6",
 link:"https://t.me/downloadhubdilawar/6",
 trending:true
-},
+}
+
 ];
 
-let currentCategory = "all";
+let currentCategory="all";
 
-// LOAD TRENDING
+// TRENDING
 function loadTrending(){
-  const box = document.getElementById("trending");
-  box.innerHTML="";
+const box=document.getElementById("trending");
+box.innerHTML="";
 
-  moviesData.filter(m=>m.trending).forEach(m=>{
-    box.innerHTML += `
-      <img src="${m.img}" 
-      onerror="this.src='https://via.placeholder.com/300x400?text=No+Image'"
-      onclick="openLink('${m.link}')">
-    `;
-  });
+moviesData.filter(m=>m.trending).forEach(m=>{
+box.innerHTML+=`
+<img loading="lazy"
+src="${m.img}"
+onerror="this.src='https://via.placeholder.com/300x400?text=No+Image'"
+onclick="openLink('${m.link}')">
+`;
+});
 }
 
 // SHOW MOVIES
 function showMovies(){
-  const box = document.getElementById("movies");
-  const search = document.getElementById("search").value.toLowerCase();
+const box=document.getElementById("movies");
+const search=document.getElementById("search").value.toLowerCase();
 
-  box.innerHTML="";
+box.innerHTML="";
 
-  moviesData.forEach(m=>{
-    if(
-      (currentCategory==="all" || m.category===currentCategory) &&
-      m.title.toLowerCase().includes(search)
-    ){
-      box.innerHTML += `
-        <div class="card">
-          <img src="${m.img}" 
-          onerror="this.src='https://via.placeholder.com/300x400?text=No+Image'">
+moviesData.forEach(m=>{
+if((currentCategory==="all"||m.category===currentCategory)&&
+m.title.toLowerCase().includes(search)){
 
-          <h3>${m.title}</h3>
+box.innerHTML+=`
+<div class="card">
+<img loading="lazy"
+src="${m.img}"
+onerror="this.src='https://via.placeholder.com/300x400?text=No+Image'">
 
-          <div class="btns">
-            <button class="watch" onclick="openLink('${m.link}')">▶ Watch</button>
-            <button class="download" onclick="openLink('${m.link}')">⬇ Download</button>
-          </div>
-        </div>
-      `;
-    }
-  });
+<h3>${m.title}</h3>
+
+<div class="btns">
+<button class="watch" onclick="openLink('${m.link}')">▶ Watch</button>
+<button class="download" onclick="openLink('${m.link}?single')">⬇ Download</button>
+</div>
+
+</div>
+`;
+}
+});
 }
 
-// CATEGORY FIX (NO BUG)
+// CATEGORY
 function setCategory(cat,btn){
-  currentCategory = cat;
+currentCategory=cat;
 
-  document.querySelectorAll(".categories button")
-  .forEach(b=>b.classList.remove("active"));
+document.querySelectorAll(".categories button")
+.forEach(b=>b.classList.remove("active"));
 
-  btn.classList.add("active");
+btn.classList.add("active");
 
-  showMovies();
+showMovies();
 }
 
 // OPEN LINK
 function openLink(link){
-  window.open(link,"_blank");
+window.open(link,"_blank");
 }
 
 // SEARCH

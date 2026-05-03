@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Download Hub by Dilawar</title>
 
-<!-- SEO -->
-<meta name="description" content="Watch and Download Movies - Download Hub by Dilawar">
-<meta name="keywords" content="movies, download, watch online, telegram movies">
-
 <style>
 body {
   margin:0;
@@ -31,18 +27,26 @@ header {
   padding:12px;
   border-radius:10px;
   border:none;
-  font-size:16px;
 }
 
-.container {
-  display:flex;
-  flex-wrap:wrap;
-  gap:20px;
+/* SECTIONS */
+.section {
   padding:20px;
 }
+.section h2 {
+  margin-bottom:10px;
+}
 
+/* GRID */
+.grid {
+  display:flex;
+  gap:20px;
+  flex-wrap:wrap;
+}
+
+/* CARD */
 .card {
-  width:220px;
+  width:200px;
   background:#1c2541;
   border-radius:15px;
   overflow:hidden;
@@ -50,18 +54,18 @@ header {
 }
 
 .card:hover {
-  transform:scale(1.1);
+  transform:scale(1.08);
 }
 
 .card img {
   width:100%;
-  height:300px;
+  height:280px;
   object-fit:cover;
 }
 
 .title {
   text-align:center;
-  padding:10px;
+  padding:8px;
 }
 
 .buttons {
@@ -71,7 +75,7 @@ header {
 }
 
 .btn {
-  padding:8px 12px;
+  padding:6px 10px;
   border:none;
   border-radius:8px;
   cursor:pointer;
@@ -80,7 +84,7 @@ header {
 .watch { background:#3a86ff; color:white; }
 .download { background:#ff006e; color:white; }
 
-/* ADMIN PANEL */
+/* ADMIN */
 .admin {
   position:fixed;
   bottom:20px;
@@ -89,12 +93,6 @@ header {
   padding:15px;
   border-radius:10px;
   display:none;
-}
-
-input {
-  width:100%;
-  margin:5px 0;
-  padding:8px;
 }
 
 /* LOGIN */
@@ -108,6 +106,12 @@ input {
   border-radius:10px;
   display:none;
 }
+
+input {
+  width:100%;
+  margin:5px 0;
+  padding:8px;
+}
 </style>
 </head>
 
@@ -115,11 +119,21 @@ input {
 
 <header>🚀 Download Hub by Dilawar</header>
 
-<input type="text" class="search" placeholder="Search movies..." onkeyup="searchMovie(this.value)">
+<input class="search" placeholder="Search movies..." onkeyup="searchMovie(this.value)">
 
-<div class="container" id="movies"></div>
+<!-- TRENDING -->
+<div class="section">
+  <h2>🔥 Trending</h2>
+  <div class="grid" id="trending"></div>
+</div>
 
-<!-- ADMIN LOGIN -->
+<!-- ALL MOVIES -->
+<div class="section">
+  <h2>🎬 All Movies</h2>
+  <div class="grid" id="allMovies"></div>
+</div>
+
+<!-- LOGIN -->
 <div class="loginBox" id="loginBox">
   <h3>Admin Login</h3>
   <input id="user" placeholder="Username">
@@ -135,11 +149,17 @@ input {
 </div>
 
 <script>
-const API_KEY = "YOUR_TMDB_API_KEY"; // 🔥 yahan apni key lagao
+const API_KEY = "9c2740d400d5fcab8638d58c8ce9454b";
 
-let movies = [];
+let movies = [
+  {
+    name:"Dhruv 2025",
+    link:"https://t.me/downloadhubdilawar/6",
+    poster:"https://image.tmdb.org/t/p/w500/9Gtg2DzBhmYamXBS1hKAhiwbBKS.jpg"
+  }
+];
 
-// FETCH POSTER FROM TMDB
+// TMDB POSTER
 async function getPoster(name){
   let res = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&query=${name}`);
   let data = await res.json();
@@ -162,19 +182,27 @@ async function addMovie(){
 
 // DISPLAY
 function displayMovies(list){
-  let box = document.getElementById("movies");
-  box.innerHTML = "";
+  let trending = document.getElementById("trending");
+  let all = document.getElementById("allMovies");
 
-  list.forEach(m => {
-    box.innerHTML += `
+  trending.innerHTML="";
+  all.innerHTML="";
+
+  list.forEach((m,i)=>{
+    let card = `
     <div class="card">
       <img src="${m.poster}">
       <div class="title">${m.name}</div>
       <div class="buttons">
-        <button class="btn watch" onclick="watch('${m.link}')">Watch</button>
+        <button class="btn watch" onclick="window.open('${m.link}')">Watch</button>
         <button class="btn download" onclick="window.open('${m.link}')">Download</button>
       </div>
     </div>`;
+
+    if(i < 3){
+      trending.innerHTML += card;
+    }
+    all.innerHTML += card;
   });
 }
 
@@ -184,14 +212,9 @@ function searchMovie(val){
   displayMovies(f);
 }
 
-// WATCH (embed telegram)
-function watch(link){
-  window.open(link);
-}
-
-// LOGIN SYSTEM (hidden)
-document.addEventListener("keydown", e=>{
-  if(e.ctrlKey && e.key === "l"){
+// LOGIN FIXED (CTRL + SHIFT + L)
+document.addEventListener("keydown", function(e){
+  if(e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "l"){
     document.getElementById("loginBox").style.display="block";
   }
 });
@@ -207,15 +230,6 @@ function login(){
     alert("Wrong login");
   }
 }
-
-// DEFAULT MOVIES (tumhari wali bhi)
-movies = [
-  {
-    name:"Dhruv 2025",
-    link:"https://t.me/downloadhubdilawar/6",
-    poster:"https://via.placeholder.com/300x450"
-  }
-];
 
 displayMovies(movies);
 </script>

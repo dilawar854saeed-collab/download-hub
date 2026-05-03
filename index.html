@@ -3,190 +3,199 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Download Hub by Dilawar | Free Movies Download</title>
+<title>Download Hub by Dilawar</title>
 
 <!-- SEO -->
-<meta name="description" content="Download Hub by Dilawar - Watch and download latest HD movies free using Telegram.">
-<meta name="keywords" content="free movies download, telegram movies, HD movies, download hub dilawar">
+<meta name="description" content="Download Hub by Dilawar - Movies Download & Watch">
+<meta name="keywords" content="movies, download, telegram movies">
 <meta name="author" content="Dilawar">
-<link rel="canonical" href="https://charming-arithmetic-8ca6a2.netlify.app">
-
-<!-- Open Graph -->
-<meta property="og:title" content="Download Hub by Dilawar">
-<meta property="og:description" content="Watch and download movies free">
-<meta property="og:type" content="website">
-
-<!-- Favicon -->
-<link rel="icon" href="https://via.placeholder.com/32">
 
 <style>
-body{margin:0;font-family:Arial;background:#0b0f1a;color:#fff;}
-header{text-align:center;padding:15px;font-size:22px;background:#020617;}
-
-.search{
-width:90%;margin:10px auto;display:block;
-padding:12px;border-radius:8px;border:none;font-size:16px;
+body {
+  margin: 0;
+  font-family: Arial;
+  background: #0f172a;
+  color: white;
 }
 
-.slider{
-display:flex;overflow-x:auto;gap:10px;padding:10px;
+/* HEADER */
+header {
+  text-align: center;
+  padding: 15px;
+  background: #020617;
+  font-size: 22px;
+  font-weight: bold;
 }
 
-.slider img{
-width:180px;border-radius:10px;cursor:pointer;
-transition:0.3s;
-}
-.slider img:hover{transform:scale(1.1);}
-
-.categories{text-align:center;}
-.categories button{
-margin:5px;padding:8px 15px;border:none;border-radius:20px;
-background:#1e293b;color:#fff;cursor:pointer;
-}
-.categories button.active{background:#22c55e;}
-
-.grid{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-gap:15px;padding:15px;
+/* SEARCH */
+.search {
+  width: 90%;
+  margin: 15px auto;
+  display: block;
+  padding: 10px;
+  border-radius: 10px;
+  border: none;
 }
 
-.card{
-background:#1e293b;border-radius:10px;
-overflow:hidden;transition:0.3s;
-}
-.card:hover{transform:scale(1.05);}
-
-.card img{
-width:100%;height:240px;object-fit:cover;
+/* GRID */
+.movies {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px,1fr));
+  gap: 15px;
+  padding: 15px;
 }
 
-.card h3{padding:10px;font-size:16px;}
-
-.btns{display:flex;gap:5px;padding:10px;}
-
-.btns button{
-flex:1;padding:8px;border:none;border-radius:5px;cursor:pointer;
+/* CARD */
+.card {
+  background: #1e293b;
+  border-radius: 12px;
+  overflow: hidden;
+  text-align: center;
 }
 
-.watch{background:#3b82f6;color:#fff;}
-.download{background:#ef4444;color:#fff;}
+.card img {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+}
+
+.card h3 {
+  font-size: 14px;
+  padding: 5px;
+}
+
+.btns {
+  display: flex;
+  justify-content: space-around;
+  padding: 10px;
+}
+
+button {
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.watch { background: #3b82f6; color: white; }
+.download { background: #ef4444; color: white; }
+
+/* ADMIN */
+.admin {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  background: #020617;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+.admin input {
+  display: block;
+  margin: 5px 0;
+  padding: 5px;
+  width: 180px;
+}
+
+.admin button {
+  width: 100%;
+  background: green;
+  color: white;
+}
+
 </style>
 </head>
 
 <body>
 
-<header>🎬 Download Hub by Dilawar</header>
+<header>🚀 Download Hub by Dilawar</header>
 
-<input class="search" placeholder="🔍 Search movies..." id="search">
+<input type="text" class="search" placeholder="Search movies..." onkeyup="searchMovie(this.value)">
 
-<h3 style="padding-left:10px;">🔥 Trending</h3>
-<div class="slider" id="trending"></div>
+<div id="movies" class="movies"></div>
 
-<div class="categories">
-<button class="active" onclick="setCategory('all',this)">All</button>
-<button onclick="setCategory('action',this)">Action</button>
-<button onclick="setCategory('horror',this)">Horror</button>
-<button onclick="setCategory('drama',this)">Drama</button>
+<!-- ADMIN PANEL -->
+<div class="admin">
+  <input id="title" placeholder="Movie Title">
+  <input id="img" placeholder="Poster URL">
+  <input id="link" placeholder="Telegram Link">
+  <button onclick="addMovie()">Add Movie</button>
 </div>
 
-<div class="grid" id="movies"></div>
+<!-- FIREBASE -->
+<script type="module">
 
-<script>
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
+import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-database.js";
 
-// MOVIES DATA
-const moviesData = [
+const firebaseConfig = {
+  apiKey: "AIzaSyDPq7MhUJZsLXd-KseYkXY04aWVkoUtT9A",
+  authDomain: "downlode-hub-by-dilawar.firebaseapp.com",
+  databaseURL: "https://downlode-hub-by-dilawar-default-rtdb.firebaseio.com/",
+  projectId: "downlode-hub-by-dilawar",
+  storageBucket: "downlode-hub-by-dilawar.firebasestorage.app",
+  messagingSenderId: "464345954287",
+  appId: "1:464345954287:web:457e765158dadb2302681a"
+};
 
-{
-title:"Dhurandhar 2025",
-category:"action",
-img:"https://via.placeholder.com/300x400.png?text=Dhurandhar",
-link:"https://t.me/downloadhubdilawar/3",
-trending:true
-},
-
-{
-title:"New Movie",
-category:"action",
-img:"https://via.placeholder.com/300x400.png?text=Movie+6",
-link:"https://t.me/downloadhubdilawar/6",
-trending:true
-}
-
-];
-
-let currentCategory="all";
-
-// TRENDING
-function loadTrending(){
-const box=document.getElementById("trending");
-box.innerHTML="";
-
-moviesData.filter(m=>m.trending).forEach(m=>{
-box.innerHTML+=`
-<img loading="lazy"
-src="${m.img}"
-onerror="this.src='https://via.placeholder.com/300x400?text=No+Image'"
-onclick="openLink('${m.link}')">
-`;
-});
-}
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const moviesRef = ref(db, "movies");
 
 // SHOW MOVIES
-function showMovies(){
-const box=document.getElementById("movies");
-const search=document.getElementById("search").value.toLowerCase();
+let allMovies = [];
 
-box.innerHTML="";
+onValue(moviesRef, (snapshot) => {
+  const data = snapshot.val();
+  allMovies = [];
 
-moviesData.forEach(m=>{
-if((currentCategory==="all"||m.category===currentCategory)&&
-m.title.toLowerCase().includes(search)){
+  for (let id in data) {
+    allMovies.push(data[id]);
+  }
 
-box.innerHTML+=`
-<div class="card">
-<img loading="lazy"
-src="${m.img}"
-onerror="this.src='https://via.placeholder.com/300x400?text=No+Image'">
-
-<h3>${m.title}</h3>
-
-<div class="btns">
-<button class="watch" onclick="openLink('${m.link}')">▶ Watch</button>
-<button class="download" onclick="openLink('${m.link}?single')">⬇ Download</button>
-</div>
-
-</div>
-`;
-}
+  renderMovies(allMovies);
 });
+
+// RENDER
+function renderMovies(list){
+  const box = document.getElementById("movies");
+  box.innerHTML = "";
+
+  list.forEach(m => {
+    box.innerHTML += `
+    <div class="card">
+      <img src="${m.img}">
+      <h3>${m.title}</h3>
+      <div class="btns">
+        <button class="watch" onclick="openLink('${m.link}')">▶ Watch</button>
+        <button class="download" onclick="openLink('${m.link}')">⬇ Download</button>
+      </div>
+    </div>`;
+  });
 }
 
-// CATEGORY
-function setCategory(cat,btn){
-currentCategory=cat;
+// ADD MOVIE
+window.addMovie = function(){
+  const title = document.getElementById("title").value;
+  const img = document.getElementById("img").value;
+  const link = document.getElementById("link").value;
 
-document.querySelectorAll(".categories button")
-.forEach(b=>b.classList.remove("active"));
-
-btn.classList.add("active");
-
-showMovies();
-}
+  push(moviesRef, {title, img, link});
+  alert("Movie Added!");
+};
 
 // OPEN LINK
-function openLink(link){
-window.open(link,"_blank");
-}
+window.openLink = function(link){
+  window.open(link,"_blank");
+};
 
 // SEARCH
-document.getElementById("search")
-.addEventListener("input",showMovies);
-
-// INIT
-loadTrending();
-showMovies();
+window.searchMovie = function(val){
+  const filtered = allMovies.filter(m => 
+    m.title.toLowerCase().includes(val.toLowerCase())
+  );
+  renderMovies(filtered);
+};
 
 </script>
 

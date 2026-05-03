@@ -8,42 +8,77 @@
 <style>
 body{
   margin:0;
-  font-family:Arial, sans-serif;
-  background:#0f172a;
+  font-family:Arial;
+  background:#0b0f1a;
   color:#fff;
 }
 
 header{
-  background:#020617;
-  padding:15px;
   text-align:center;
+  padding:15px;
   font-size:22px;
-  font-weight:bold;
+  background:#020617;
 }
 
-.search-box{
+.search{
   width:90%;
-  max-width:600px;
-  margin:15px auto;
+  margin:10px auto;
   display:block;
   padding:12px;
   border-radius:8px;
   border:none;
-  font-size:16px;
 }
 
-.container{
+/* TRENDING */
+.slider{
+  display:flex;
+  overflow-x:auto;
+  gap:10px;
+  padding:10px;
+}
+
+.slider img{
+  width:180px;
+  border-radius:10px;
+  cursor:pointer;
+  transition:0.3s;
+}
+
+.slider img:hover{
+  transform:scale(1.1);
+}
+
+/* CATEGORY */
+.categories{
+  text-align:center;
+}
+
+.categories button{
+  margin:5px;
+  padding:8px 15px;
+  border:none;
+  border-radius:20px;
+  background:#1e293b;
+  color:#fff;
+  cursor:pointer;
+}
+
+.categories button.active{
+  background:#22c55e;
+}
+
+/* GRID */
+.grid{
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
-  gap:20px;
-  padding:20px;
+  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:15px;
+  padding:15px;
 }
 
 .card{
   background:#1e293b;
-  border-radius:12px;
+  border-radius:10px;
   overflow:hidden;
-  box-shadow:0 5px 15px rgba(0,0,0,0.3);
   transition:0.3s;
 }
 
@@ -53,128 +88,117 @@ header{
 
 .card img{
   width:100%;
-  height:150px;
+  height:240px;
   object-fit:cover;
 }
 
-.card-content{
-  padding:15px;
-}
-
 .card h3{
-  margin:0 0 10px;
-}
-
-.buttons{
-  display:flex;
-  gap:10px;
-}
-
-button{
-  flex:1;
   padding:10px;
+  font-size:16px;
+}
+
+.btns{
+  display:flex;
+  gap:5px;
+  padding:10px;
+}
+
+.btns button{
+  flex:1;
+  padding:8px;
   border:none;
-  border-radius:6px;
-  cursor:pointer;
-  font-weight:bold;
-}
-
-.watch{
-  background:#3b82f6;
-  color:#fff;
-}
-
-.download{
-  background:#ef4444;
-  color:#fff;
-}
-
-/* Category buttons */
-.categories{
-  text-align:center;
-  margin-top:10px;
-}
-
-.categories button{
-  margin:5px;
-  padding:8px 15px;
-  border-radius:20px;
-  background:#334155;
-  color:#fff;
-  border:none;
+  border-radius:5px;
   cursor:pointer;
 }
 
-.categories button.active{
-  background:#22c55e;
-}
+.watch{background:#3b82f6;color:#fff;}
+.download{background:#ef4444;color:#fff;}
 </style>
 </head>
 
 <body>
 
-<header>🚀 Download Hub by Dilawar</header>
+<header>🎬 Download Hub by Dilawar</header>
 
-<input type="text" id="search" class="search-box" placeholder="🔍 Search movies...">
+<input class="search" placeholder="🔍 Search movies..." id="search">
+
+<h3 style="padding-left:10px;">🔥 Trending</h3>
+<div class="slider" id="trending"></div>
 
 <div class="categories">
-  <button onclick="filterCategory('all')" class="active">All</button>
-  <button onclick="filterCategory('action')">Action</button>
-  <button onclick="filterCategory('horror')">Horror</button>
-  <button onclick="filterCategory('drama')">Drama</button>
+  <button class="active" onclick="setCategory('all',this)">All</button>
+  <button onclick="setCategory('action',this)">Action</button>
+  <button onclick="setCategory('horror',this)">Horror</button>
+  <button onclick="setCategory('drama',this)">Drama</button>
 </div>
 
-<div class="container" id="movies"></div>
+<div class="grid" id="movies"></div>
 
 <script>
-// 🎬 Movie Data (EDIT HERE ONLY)
-const movies = [
-  {
-    title:"Dhurandhar 2025",
-    category:"action",
-    img:"https://via.placeholder.com/300x180.png?text=Dhurandhar",
-    link:"https://t.me/downloadhubdilawar/3"
-  },
-  {
-    title:"Horror Night",
-    category:"horror",
-    img:"https://via.placeholder.com/300x180.png?text=Horror",
-    link:"https://t.me/downloadhubdilawar/3"
-  },
-  {
-    title:"Love Story",
-    category:"drama",
-    img:"https://via.placeholder.com/300x180.png?text=Drama",
-    link:"https://t.me/downloadhubdilawar/3"
-  }
+
+// 🎬 MOVIE DATA (EDIT HERE ONLY)
+const moviesData = [
+{
+title:"Dhurandhar 2025",
+category:"action",
+img:"https://via.placeholder.com/300x400.png?text=Dhurandhar",
+link:"https://t.me/downloadhubdilawar/3",
+trending:true
+},
+{
+title:"Horror Night",
+category:"horror",
+img:"https://via.placeholder.com/300x400.png?text=Horror",
+link:"https://t.me/downloadhubdilawar/3",
+trending:true
+},
+{
+title:"Love Story",
+category:"drama",
+img:"https://via.placeholder.com/300x400.png?text=Drama",
+link:"https://t.me/downloadhubdilawar/3",
+trending:false
+}
 ];
 
 let currentCategory = "all";
 
-function displayMovies(){
-  const container = document.getElementById("movies");
-  container.innerHTML = "";
+// LOAD TRENDING
+function loadTrending(){
+  const box = document.getElementById("trending");
+  box.innerHTML="";
 
+  moviesData.filter(m=>m.trending).forEach(m=>{
+    box.innerHTML += `
+      <img src="${m.img}" 
+      onerror="this.src='https://via.placeholder.com/300x400?text=No+Image'"
+      onclick="openLink('${m.link}')">
+    `;
+  });
+}
+
+// SHOW MOVIES
+function showMovies(){
+  const box = document.getElementById("movies");
   const search = document.getElementById("search").value.toLowerCase();
 
-  movies.forEach(movie => {
+  box.innerHTML="";
+
+  moviesData.forEach(m=>{
     if(
-      (currentCategory === "all" || movie.category === currentCategory) &&
-      movie.title.toLowerCase().includes(search)
+      (currentCategory==="all" || m.category===currentCategory) &&
+      m.title.toLowerCase().includes(search)
     ){
-      container.innerHTML += `
+      box.innerHTML += `
         <div class="card">
-          <img src="${movie.img}">
-          <div class="card-content">
-            <h3>${movie.title}</h3>
-            <div class="buttons">
-              <a href="${movie.link}" target="_blank">
-                <button class="watch">▶ Watch</button>
-              </a>
-              <a href="${movie.link}?single" target="_blank">
-                <button class="download">⬇ Download</button>
-              </a>
-            </div>
+          <img src="${m.img}" 
+          onerror="this.src='https://via.placeholder.com/300x400?text=No+Image'">
+
+          <h3>${m.title}</h3>
+
+          <div class="btns">
+            <button class="watch" onclick="openLink('${m.link}')">▶ Watch</button>
+            <button class="download" onclick="openLink('${m.link}')">⬇ Download</button>
           </div>
         </div>
       `;
@@ -182,24 +206,31 @@ function displayMovies(){
   });
 }
 
-// 🔎 Search
-document.getElementById("search").addEventListener("input", displayMovies);
-
-// 📂 Category filter
-function filterCategory(cat){
+// CATEGORY FIX (NO BUG)
+function setCategory(cat,btn){
   currentCategory = cat;
 
-  document.querySelectorAll(".categories button").forEach(btn=>{
-    btn.classList.remove("active");
-  });
+  document.querySelectorAll(".categories button")
+  .forEach(b=>b.classList.remove("active"));
 
-  event.target.classList.add("active");
+  btn.classList.add("active");
 
-  displayMovies();
+  showMovies();
 }
 
-// Load first time
-displayMovies();
+// OPEN LINK
+function openLink(link){
+  window.open(link,"_blank");
+}
+
+// SEARCH
+document.getElementById("search")
+.addEventListener("input",showMovies);
+
+// INIT
+loadTrending();
+showMovies();
+
 </script>
 
 </body>

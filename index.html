@@ -6,81 +6,79 @@
 <title>Download Hub by Dilawar</title>
 
 <style>
-body {
+body{
   margin:0;
-  font-family:Arial;
   background:#0b132b;
+  font-family:Arial;
   color:white;
 }
 
-header {
+header{
   text-align:center;
   padding:20px;
   font-size:26px;
   font-weight:bold;
 }
 
-.search {
+.search{
   width:80%;
   margin:20px auto;
-  display:block;
   padding:12px;
+  display:block;
   border-radius:10px;
   border:none;
-  font-size:16px;
 }
 
-.section {
+.section{
   padding:20px;
 }
 
-.grid {
+.grid{
   display:flex;
   flex-wrap:wrap;
   gap:20px;
 }
 
-.card {
+.card{
   width:200px;
   background:#1c2541;
   border-radius:15px;
   overflow:hidden;
-  transition:0.3s;
+  transition:.3s;
 }
 
-.card:hover {
+.card:hover{
   transform:scale(1.08);
 }
 
-.card img {
+.card img{
   width:100%;
   height:280px;
   object-fit:cover;
 }
 
-.title {
+.title{
   text-align:center;
   padding:8px;
 }
 
-.buttons {
+.buttons{
   display:flex;
   justify-content:space-around;
   padding:10px;
 }
 
-.btn {
+.btn{
   padding:6px 10px;
   border:none;
   border-radius:8px;
   cursor:pointer;
 }
 
-.watch { background:#3a86ff; color:white; }
-.download { background:#ff006e; color:white; }
+.watch{background:#3a86ff;color:white;}
+.download{background:#ff006e;color:white;}
 
-/* ADMIN */
-.admin {
+.admin{
   position:fixed;
   bottom:20px;
   right:20px;
@@ -90,18 +88,18 @@ header {
   display:none;
 }
 
-.loginBox {
+.login{
   position:fixed;
-  top:30%;
+  top:40%;
   left:50%;
   transform:translate(-50%,-50%);
   background:#111;
   padding:20px;
-  border-radius:10px;
   display:none;
+  border-radius:10px;
 }
 
-input {
+input{
   width:100%;
   margin:5px 0;
   padding:8px;
@@ -115,20 +113,18 @@ input {
 
 <input class="search" placeholder="Search movies..." onkeyup="searchMovie(this.value)">
 
-<!-- TRENDING -->
 <div class="section">
   <h2>🔥 Trending</h2>
   <div class="grid" id="trending"></div>
 </div>
 
-<!-- ALL MOVIES -->
 <div class="section">
   <h2>🎬 All Movies</h2>
   <div class="grid" id="allMovies"></div>
 </div>
 
 <!-- LOGIN -->
-<div class="loginBox" id="loginBox">
+<div class="login" id="loginBox">
   <h3>Admin Login</h3>
   <input id="user" placeholder="Username">
   <input id="pass" type="password" placeholder="Password">
@@ -146,7 +142,6 @@ input {
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
 import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-database.js";
 
-/* FIREBASE CONFIG */
 const firebaseConfig = {
   apiKey: "AIzaSyDPq7MhUJZsLXd-KseYkXY04aWVkoUtT9A",
   authDomain: "downlode-hub-by-dilawar.firebaseapp.com",
@@ -162,51 +157,54 @@ const db = getDatabase(app);
 
 const API_KEY = "9c2740d400d5fcab8638d58c8ce9454b";
 
-let allMoviesData = [];
+let moviesData = [];
 
-/* GET POSTER */
+/* GET POSTER FIXED */
 async function getPoster(name){
   try{
     let res = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&query=${name}`);
     let data = await res.json();
-    if(data.results && data.results.length > 0){
-      return "https://image.tmdb.org/t/p/w500" + data.results[0].poster_path;
+    if(data.results && data.results[0] && data.results[0].poster_path){
+      return "https://image.tmdb.org/t/p/w500"+data.results[0].poster_path;
     }
   }catch(e){}
-  return "https://via.placeholder.com/300x450";
+  return "https://via.placeholder.com/300x450?text=No+Image";
 }
 
 /* ADD MOVIE */
 window.addMovie = async function(){
-  let name = document.getElementById("name").value;
-  let link = document.getElementById("link").value;
+  let name = document.getElementById("name").value.trim();
+  let link = document.getElementById("link").value.trim();
 
   if(!name || !link){
-    alert("Fill all fields");
+    alert("Fill fields");
     return;
   }
 
   let poster = await getPoster(name);
 
-  push(ref(db,"movies"), {
-    name: name,
-    link: link,
-    poster: poster
+  push(ref(db,"movies"),{
+    name:name,
+    link:link,
+    poster:poster
   });
+
+  document.getElementById("name").value="";
+  document.getElementById("link").value="";
 }
 
-/* RENDER MOVIES */
-function renderMovies(arr){
-  let trending = document.getElementById("trending");
-  let all = document.getElementById("allMovies");
+/* RENDER FIXED */
+function render(arr){
+  let t = document.getElementById("trending");
+  let a = document.getElementById("allMovies");
 
-  trending.innerHTML="";
-  all.innerHTML="";
+  t.innerHTML="";
+  a.innerHTML="";
 
   arr.forEach((m,i)=>{
-    let title = m.name || "No Title";
-    let poster = m.poster || "https://via.placeholder.com/300x450";
-    let link = m.link || "#";
+    let title = m?.name || "No Title";
+    let poster = m?.poster || "https://via.placeholder.com/300x450?text=No+Image";
+    let link = m?.link || "#";
 
     let card = `
     <div class="card">
@@ -218,49 +216,49 @@ function renderMovies(arr){
       </div>
     </div>`;
 
-    if(i < 3) trending.innerHTML += card;
-    all.innerHTML += card;
+    if(i<3) t.innerHTML += card;
+    a.innerHTML += card;
   });
 }
 
-/* LOAD FROM FIREBASE */
-onValue(ref(db,"movies"), snapshot=>{
-  let data = snapshot.val();
+/* LOAD DATA (FIXED) */
+onValue(ref(db,"movies"), snap=>{
+  let data = snap.val();
 
   if(!data){
-    allMoviesData = [];
-    renderMovies([]);
+    moviesData=[];
+    render([]);
     return;
   }
 
-  allMoviesData = Object.values(data);
-  renderMovies(allMoviesData);
+  moviesData = Object.values(data);
+  render(moviesData);
 });
 
-/* SEARCH */
+/* SEARCH FIXED */
 window.searchMovie = function(val){
-  let filtered = allMoviesData.filter(m =>
-    (m.name || "").toLowerCase().includes(val.toLowerCase())
+  let f = moviesData.filter(m =>
+    (m?.name || "").toLowerCase().includes(val.toLowerCase())
   );
-  renderMovies(filtered);
+  render(f);
 }
 
 /* LOGIN */
-document.addEventListener("keydown", function(e){
-  if(e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "l"){
+document.addEventListener("keydown",e=>{
+  if(e.ctrlKey && e.shiftKey && e.key==="L"){
     document.getElementById("loginBox").style.display="block";
   }
 });
 
-window.login = function(){
-  let u = document.getElementById("user").value;
-  let p = document.getElementById("pass").value;
+window.login=function(){
+  let u=document.getElementById("user").value;
+  let p=document.getElementById("pass").value;
 
   if(u==="admin" && p==="1234"){
     document.getElementById("adminPanel").style.display="block";
     document.getElementById("loginBox").style.display="none";
   } else {
-    alert("Wrong login");
+    alert("Wrong");
   }
 }
 </script>

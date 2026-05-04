@@ -3,16 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Download Hub by Dilawar</title>
+<title>Download Hub Pro Max</title>
 
 <style>
 body{
   margin:0;
   background:#0b132b;
-  font-family:Arial;
+  font-family:sans-serif;
   color:white;
 }
 
+/* HEADER */
 header{
   text-align:center;
   padding:20px;
@@ -20,27 +21,30 @@ header{
   font-weight:bold;
 }
 
+/* SEARCH */
 .search{
   width:80%;
   margin:20px auto;
   padding:12px;
-  display:block;
   border-radius:10px;
   border:none;
+  display:block;
 }
 
+/* SECTIONS */
 .section{
   padding:20px;
 }
 
-.grid{
+.slider{
   display:flex;
-  flex-wrap:wrap;
-  gap:20px;
+  overflow-x:auto;
+  gap:15px;
 }
 
+/* CARD */
 .card{
-  width:200px;
+  min-width:200px;
   background:#1c2541;
   border-radius:15px;
   overflow:hidden;
@@ -48,7 +52,7 @@ header{
 }
 
 .card:hover{
-  transform:scale(1.08);
+  transform:scale(1.1);
 }
 
 .card img{
@@ -78,6 +82,7 @@ header{
 .watch{background:#3a86ff;color:white;}
 .download{background:#ff006e;color:white;}
 
+/* ADMIN */
 .admin{
   position:fixed;
   bottom:20px;
@@ -104,23 +109,43 @@ input{
   margin:5px 0;
   padding:8px;
 }
+
+/* MODAL PLAYER */
+.modal{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.9);
+  display:none;
+  justify-content:center;
+  align-items:center;
+}
+
+.modal iframe{
+  width:80%;
+  height:80%;
+}
 </style>
 </head>
 
 <body>
 
-<header>🚀 Download Hub by Dilawar</header>
+<header>🚀 Download Hub Pro Max</header>
 
 <input class="search" placeholder="Search movies..." onkeyup="searchMovie(this.value)">
 
+<!-- TRENDING -->
 <div class="section">
   <h2>🔥 Trending</h2>
-  <div class="grid" id="trending"></div>
+  <div class="slider" id="trending"></div>
 </div>
 
+<!-- ALL MOVIES -->
 <div class="section">
   <h2>🎬 All Movies</h2>
-  <div class="grid" id="allMovies"></div>
+  <div class="slider" id="allMovies"></div>
 </div>
 
 <!-- LOGIN -->
@@ -135,7 +160,13 @@ input{
 <div class="admin" id="adminPanel">
   <input id="name" placeholder="Movie Name">
   <input id="link" placeholder="Telegram Link">
+  <input id="category" placeholder="Category (Action/Horror)">
   <button onclick="addMovie()">Add Movie</button>
+</div>
+
+<!-- PLAYER -->
+<div class="modal" id="player">
+  <iframe id="frame" src=""></iframe>
 </div>
 
 <script type="module">
@@ -147,9 +178,6 @@ const firebaseConfig = {
   authDomain: "downlode-hub-by-dilawar.firebaseapp.com",
   databaseURL: "https://downlode-hub-by-dilawar-default-rtdb.firebaseio.com",
   projectId: "downlode-hub-by-dilawar",
-  storageBucket: "downlode-hub-by-dilawar.appspot.com",
-  messagingSenderId: "464345954287",
-  appId: "1:464345954287:web:457e765158dadb2302681a"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -157,15 +185,15 @@ const db = getDatabase(app);
 
 const API_KEY = "9c2740d400d5fcab8638d58c8ce9454b";
 
-let moviesData = [];
+let moviesData=[];
 
-/* GET POSTER FIXED */
+/* POSTER API */
 async function getPoster(name){
   try{
-    let res = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&query=${name}`);
-    let data = await res.json();
-    if(data.results && data.results[0] && data.results[0].poster_path){
-      return "https://image.tmdb.org/t/p/w500"+data.results[0].poster_path;
+    let r = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&query=${name}`);
+    let d = await r.json();
+    if(d.results[0]?.poster_path){
+      return "https://image.tmdb.org/t/p/w500"+d.results[0].poster_path;
     }
   }catch(e){}
   return "https://via.placeholder.com/300x450?text=No+Image";
@@ -173,27 +201,18 @@ async function getPoster(name){
 
 /* ADD MOVIE */
 window.addMovie = async function(){
-  let name = document.getElementById("name").value.trim();
-  let link = document.getElementById("link").value.trim();
-
-  if(!name || !link){
-    alert("Fill fields");
-    return;
-  }
+  let name = document.getElementById("name").value;
+  let link = document.getElementById("link").value;
+  let category = document.getElementById("category").value;
 
   let poster = await getPoster(name);
 
   push(ref(db,"movies"),{
-    name:name,
-    link:link,
-    poster:poster
+    name,link,poster,category
   });
-
-  document.getElementById("name").value="";
-  document.getElementById("link").value="";
 }
 
-/* RENDER FIXED */
+/* RENDER */
 function render(arr){
   let t = document.getElementById("trending");
   let a = document.getElementById("allMovies");
@@ -202,8 +221,9 @@ function render(arr){
   a.innerHTML="";
 
   arr.forEach((m,i)=>{
-    let title = m?.name || "No Title";
-    let poster = m?.poster || "https://via.placeholder.com/300x450?text=No+Image";
+
+    let title = m?.name || m?.title || "No Title";
+    let poster = m?.poster || m?.image || "https://via.placeholder.com/300x450?text=No+Image";
     let link = m?.link || "#";
 
     let card = `
@@ -211,32 +231,36 @@ function render(arr){
       <img src="${poster}">
       <div class="title">${title}</div>
       <div class="buttons">
-        <button class="btn watch" onclick="window.open('${link}')">Watch</button>
+        <button class="btn watch" onclick="play('${link}')">Watch</button>
         <button class="btn download" onclick="window.open('${link}')">Download</button>
       </div>
     </div>`;
 
-    if(i<3) t.innerHTML += card;
-    a.innerHTML += card;
+    if(i<5) t.innerHTML+=card;
+    a.innerHTML+=card;
   });
 }
 
-/* LOAD DATA (FIXED) */
+/* PLAY VIDEO */
+window.play = function(link){
+  document.getElementById("player").style.display="flex";
+  document.getElementById("frame").src=link;
+}
+
+/* CLOSE PLAYER */
+document.getElementById("player").onclick=()=>{
+  document.getElementById("player").style.display="none";
+}
+
+/* LOAD */
 onValue(ref(db,"movies"), snap=>{
   let data = snap.val();
-
-  if(!data){
-    moviesData=[];
-    render([]);
-    return;
-  }
-
-  moviesData = Object.values(data);
+  moviesData = data ? Object.values(data) : [];
   render(moviesData);
 });
 
-/* SEARCH FIXED */
-window.searchMovie = function(val){
+/* SEARCH */
+window.searchMovie=function(val){
   let f = moviesData.filter(m =>
     (m?.name || "").toLowerCase().includes(val.toLowerCase())
   );
@@ -257,8 +281,6 @@ window.login=function(){
   if(u==="admin" && p==="1234"){
     document.getElementById("adminPanel").style.display="block";
     document.getElementById("loginBox").style.display="none";
-  } else {
-    alert("Wrong");
   }
 }
 </script>

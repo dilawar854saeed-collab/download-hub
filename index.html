@@ -5,7 +5,7 @@
 <title>Download Hub Ultimate</title>
 
 <style>
-body{margin:0;background:#0b1220;color:#fff;font-family:sans-serif}
+body{margin:0;background:#0b1220;color:white;font-family:sans-serif}
 header{text-align:center;padding:20px;font-size:26px}
 
 .search{width:80%;margin:10px auto;padding:12px;border-radius:20px;border:none;display:block}
@@ -21,13 +21,17 @@ header{text-align:center;padding:20px;font-size:26px}
 .download{background:#ff3c5f;color:#fff}
 .like{background:#22c55e;color:#fff}
 
-#modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:black}
-#modal iframe{width:100%;height:70%}
+/* MODAL */
+#modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:black;z-index:999}
+#modal iframe{width:100%;height:60%}
+#comments{padding:10px}
 
-#admin{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#111;padding:20px;border-radius:10px}
+/* ADMIN */
+#admin{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#111;padding:20px;border-radius:10px;z-index:1000}
+#login{display:none;position:fixed;top:40%;left:50%;transform:translate(-50%,-50%);background:#111;padding:20px;z-index:1000}
 
-#login{display:none;position:fixed;top:40%;left:50%;transform:translate(-50%,-50%);background:#111;padding:20px}
-
+input{width:100%;margin:5px 0;padding:8px}
+button{cursor:pointer}
 </style>
 </head>
 
@@ -35,7 +39,7 @@ header{text-align:center;padding:20px;font-size:26px}
 
 <header>🚀 Download Hub Ultimate</header>
 
-<input id="search" class="search" placeholder="Search...">
+<input id="search" class="search" placeholder="Search movies...">
 
 <div class="section">
 🔥 Trending
@@ -49,8 +53,9 @@ header{text-align:center;padding:20px;font-size:26px}
 
 <!-- LOGIN -->
 <div id="login">
-<input id="user" placeholder="user">
-<input id="pass" type="password" placeholder="pass">
+<h3>Admin Login</h3>
+<input id="user" placeholder="Username">
+<input id="pass" type="password" placeholder="Password">
 <button onclick="login()">Login</button>
 </div>
 
@@ -59,52 +64,65 @@ header{text-align:center;padding:20px;font-size:26px}
 <input id="name" placeholder="Movie name">
 <input id="link" placeholder="Telegram link">
 <input id="cat" placeholder="Category">
-<button onclick="addMovie()">Add</button>
+<button onclick="addMovie()">Add Movie</button>
 </div>
 
 <!-- MODAL -->
-<div id="modal" onclick="closeModal()">
+<div id="modal">
 <iframe id="player"></iframe>
+
 <div id="comments"></div>
-<input id="commentInput" placeholder="comment">
+
+<input id="commentInput" placeholder="Write comment">
 <button onclick="addComment()">Send</button>
+
+<button onclick="closeModal()">Close</button>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
 import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js";
 
+/* FIREBASE */
 const app = initializeApp({
-  apiKey:"AIzaSyDP...",
+  apiKey:"AIzaSyDPq7MhUJZsLXd-KseYkXY04aWVkoUtT9A",
   databaseURL:"https://downlode-hub-by-dilawar-default-rtdb.firebaseio.com"
 });
-
 const db = getDatabase(app);
 
+/* TMDB API */
 const API="9c2740d400d5fcab8638d58c8ce9454b";
 
 let movies=[];
 let currentMovie="";
 
-/* SMART POSTER */
+/* POSTER */
 async function getPoster(name){
   let r=await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${API}&query=${name}`);
   let d=await r.json();
+
   let best=d.results.find(x=>x.title?.toLowerCase().includes(name.toLowerCase()));
   if(best?.poster_path) return "https://image.tmdb.org/t/p/w500"+best.poster_path;
   if(d.results[0]?.poster_path) return "https://image.tmdb.org/t/p/w500"+d.results[0].poster_path;
-  return "https://via.placeholder.com/300x450";
+
+  return "https://via.placeholder.com/300x450?text=No+Image";
 }
 
-/* ADD */
+/* ADD MOVIE */
 window.addMovie=async()=>{
-  let name=nameInput.value;
-  let link=linkInput.value;
-  let cat=catInput.value;
+  let name=document.getElementById("name").value;
+  let link=document.getElementById("link").value;
+  let cat=document.getElementById("cat").value;
+
+  if(!name || !link){
+    alert("Fill fields");
+    return;
+  }
 
   let poster=await getPoster(name);
 
   push(ref(db,"movies"),{name,link,poster,cat});
+  alert("Movie Added ✅");
 };
 
 /* RENDER */
@@ -114,17 +132,17 @@ function render(arr){
 
   arr.forEach((m,i)=>{
     let title=m.name||m.title||"No Title";
-    let poster=m.poster||m.image;
+    let poster=m.poster||m.image||"https://via.placeholder.com/300x450";
 
     let fav=localStorage.getItem(title);
 
     let card=`
     <div class="card">
-    <img src="${poster}">
-    <div>${title}</div>
-    <button class="btn watch" onclick="play('${m.link}','${title}')">Watch</button>
-    <button class="btn download" onclick="window.open('${m.link}')">DL</button>
-    <button class="btn like" onclick="like('${title}')">${fav?"❤️":"🤍"}</button>
+      <img src="${poster}">
+      <div>${title}</div>
+      <button class="btn watch" onclick="play('${m.link}','${title}')">Watch</button>
+      <button class="btn download" onclick="window.open('${m.link}')">Download</button>
+      <button class="btn like" onclick="like('${title}')">${fav?"❤️":"🤍"}</button>
     </div>`;
 
     moviesDiv.innerHTML+=card;
@@ -132,7 +150,7 @@ function render(arr){
   });
 }
 
-/* LOAD */
+/* LOAD DATA */
 const moviesDiv=document.getElementById("movies");
 const trending=document.getElementById("trending");
 
@@ -143,8 +161,8 @@ onValue(ref(db,"movies"),snap=>{
 });
 
 /* SEARCH */
-search.oninput=()=>{
-  let v=search.value.toLowerCase();
+document.getElementById("search").oninput=function(){
+  let v=this.value.toLowerCase();
   render(movies.filter(m=>(m.name||"").toLowerCase().includes(v)));
 };
 
@@ -171,26 +189,37 @@ window.closeModal=()=>{
 function loadComments(){
   onValue(ref(db,"comments/"+currentMovie),snap=>{
     comments.innerHTML="";
-    snap.forEach(d=>comments.innerHTML+="<p>"+d.val().text+"</p>");
+    snap.forEach(d=>{
+      comments.innerHTML+="<p>"+d.val().text+"</p>";
+    });
   });
 }
 
 window.addComment=()=>{
-  push(ref(db,"comments/"+currentMovie),{text:commentInput.value});
+  let text=document.getElementById("commentInput").value;
+  if(text){
+    push(ref(db,"comments/"+currentMovie),{text});
+    commentInput.value="";
+  }
 };
 
 /* LOGIN */
 window.login=()=>{
-  if(user.value==="admin" && pass.value==="1234"){
+  let u=document.getElementById("user").value;
+  let p=document.getElementById("pass").value;
+
+  if(u==="admin" && p==="1234"){
     admin.style.display="block";
     login.style.display="none";
+  } else {
+    alert("Wrong login");
   }
 };
 
 /* ADMIN SHORTCUT */
 document.addEventListener("keydown",e=>{
-  if(e.ctrlKey&&e.shiftKey&&e.key==="L"){
-    login.style.display="block";
+  if(e.ctrlKey && e.shiftKey && e.key.toLowerCase()==="l"){
+    document.getElementById("login").style.display="block";
   }
 });
 </script>

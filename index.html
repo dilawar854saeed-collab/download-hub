@@ -2,160 +2,197 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Download Hub Ultra</title>
+<title>Download Hub Ultimate</title>
 
 <style>
-body{margin:0;background:#0b132b;color:#fff;font-family:sans-serif}
+body{margin:0;background:#0b1220;color:#fff;font-family:sans-serif}
 header{text-align:center;padding:20px;font-size:26px}
-.search{width:80%;margin:20px auto;padding:12px;border-radius:10px;border:none;display:block}
 
-.slider{display:flex;overflow-x:auto;gap:15px;padding:20px}
+.search{width:80%;margin:10px auto;padding:12px;border-radius:20px;border:none;display:block}
 
-.card{min-width:200px;background:#1c2541;border-radius:12px;overflow:hidden}
-.card img{width:100%;height:280px;object-fit:cover}
+.section{padding:20px}
+.slider{display:flex;overflow-x:auto;gap:15px}
 
-.title{text-align:center;padding:8px}
-.btns{display:flex;justify-content:space-around;padding:10px}
+.card{min-width:160px;background:#1c2333;border-radius:12px;padding:10px;text-align:center}
+.card img{width:100%;height:220px;object-fit:cover;border-radius:10px}
 
-.btn{padding:6px 10px;border:none;border-radius:8px;color:#fff}
-.watch{background:#3a86ff}
-.download{background:#ff006e}
+.btn{padding:6px;border:none;border-radius:6px;margin:3px;cursor:pointer}
+.watch{background:#3b82f6;color:#fff}
+.download{background:#ff3c5f;color:#fff}
+.like{background:#22c55e;color:#fff}
 
-.admin{position:fixed;bottom:20px;right:20px;background:#111;padding:15px;border-radius:10px;display:none}
-.login{position:fixed;top:40%;left:50%;transform:translate(-50%,-50%);background:#111;padding:20px;display:none}
+#modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:black}
+#modal iframe{width:100%;height:70%}
 
-input{width:100%;margin:5px 0;padding:8px}
+#admin{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#111;padding:20px;border-radius:10px}
+
+#login{display:none;position:fixed;top:40%;left:50%;transform:translate(-50%,-50%);background:#111;padding:20px}
+
 </style>
 </head>
 
 <body>
 
-<header>🚀 Download Hub Ultra</header>
+<header>🚀 Download Hub Ultimate</header>
 
-<input class="search" placeholder="Search..." onkeyup="searchMovie(this.value)">
+<input id="search" class="search" placeholder="Search...">
 
-<h2 style="padding-left:20px">🔥 Trending</h2>
-<div class="slider" id="trending"></div>
+<div class="section">
+🔥 Trending
+<div id="trending" class="slider"></div>
+</div>
 
-<h2 style="padding-left:20px">🎬 All Movies</h2>
-<div class="slider" id="all"></div>
+<div class="section">
+🎬 All Movies
+<div id="movies" class="slider"></div>
+</div>
 
-<!-- ADMIN -->
-<div class="login" id="login">
-<input id="u" placeholder="user">
-<input id="p" type="password" placeholder="pass">
+<!-- LOGIN -->
+<div id="login">
+<input id="user" placeholder="user">
+<input id="pass" type="password" placeholder="pass">
 <button onclick="login()">Login</button>
 </div>
 
-<div class="admin" id="admin">
+<!-- ADMIN -->
+<div id="admin">
 <input id="name" placeholder="Movie name">
 <input id="link" placeholder="Telegram link">
+<input id="cat" placeholder="Category">
 <button onclick="addMovie()">Add</button>
 </div>
 
+<!-- MODAL -->
+<div id="modal" onclick="closeModal()">
+<iframe id="player"></iframe>
+<div id="comments"></div>
+<input id="commentInput" placeholder="comment">
+<button onclick="addComment()">Send</button>
+</div>
+
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
-import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-database.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js";
 
 const app = initializeApp({
   apiKey:"AIzaSyDP...",
-  authDomain:"downlode-hub-by-dilawar.firebaseapp.com",
   databaseURL:"https://downlode-hub-by-dilawar-default-rtdb.firebaseio.com"
 });
 
 const db = getDatabase(app);
+
 const API="9c2740d400d5fcab8638d58c8ce9454b";
 
-let allMovies=[];
+let movies=[];
+let currentMovie="";
 
-/* 🔥 BETTER POSTER FIX */
+/* SMART POSTER */
 async function getPoster(name){
-  let r = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${API}&query=${name}&include_adult=false`);
-  let d = await r.json();
-
-  // smarter match
-  let best = d.results.find(x=>x.title?.toLowerCase().includes(name.toLowerCase()));
-
-  if(best?.poster_path){
-    return "https://image.tmdb.org/t/p/w500"+best.poster_path;
-  }
-
-  if(d.results[0]?.poster_path){
-    return "https://image.tmdb.org/t/p/w500"+d.results[0].poster_path;
-  }
-
-  return "https://via.placeholder.com/300x450?text=No+Image";
+  let r=await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${API}&query=${name}`);
+  let d=await r.json();
+  let best=d.results.find(x=>x.title?.toLowerCase().includes(name.toLowerCase()));
+  if(best?.poster_path) return "https://image.tmdb.org/t/p/w500"+best.poster_path;
+  if(d.results[0]?.poster_path) return "https://image.tmdb.org/t/p/w500"+d.results[0].poster_path;
+  return "https://via.placeholder.com/300x450";
 }
 
 /* ADD */
-window.addMovie = async ()=>{
-  let name = document.getElementById("name").value.trim();
-  let link = document.getElementById("link").value.trim();
+window.addMovie=async()=>{
+  let name=nameInput.value;
+  let link=linkInput.value;
+  let cat=catInput.value;
 
-  let poster = await getPoster(name);
+  let poster=await getPoster(name);
 
-  push(ref(db,"movies"),{
-    name:name,
-    link:link,
-    poster:poster
-  });
+  push(ref(db,"movies"),{name,link,poster,cat});
 };
 
-/* RENDER FIX (ULTIMATE) */
+/* RENDER */
 function render(arr){
-  let t=document.getElementById("trending");
-  let a=document.getElementById("all");
-
-  t.innerHTML="";
-  a.innerHTML="";
+  trending.innerHTML="";
+  moviesDiv.innerHTML="";
 
   arr.forEach((m,i)=>{
+    let title=m.name||m.title||"No Title";
+    let poster=m.poster||m.image;
 
-    let title = m.name || m.title || "No Title";
-    let poster = m.poster || m.image || "https://via.placeholder.com/300x450?text=No+Image";
-    let link = m.link || "#";
+    let fav=localStorage.getItem(title);
 
-    let card = `
+    let card=`
     <div class="card">
-      <img src="${poster}">
-      <div class="title">${title}</div>
-      <div class="btns">
-        <button class="btn watch" onclick="window.open('${link}')">Watch</button>
-        <button class="btn download" onclick="window.open('${link}')">Download</button>
-      </div>
+    <img src="${poster}">
+    <div>${title}</div>
+    <button class="btn watch" onclick="play('${m.link}','${title}')">Watch</button>
+    <button class="btn download" onclick="window.open('${m.link}')">DL</button>
+    <button class="btn like" onclick="like('${title}')">${fav?"❤️":"🤍"}</button>
     </div>`;
 
-    if(i<5) t.innerHTML+=card;
-    a.innerHTML+=card;
+    moviesDiv.innerHTML+=card;
+    if(i<5) trending.innerHTML+=card;
   });
 }
 
 /* LOAD */
-onValue(ref(db,"movies"), snap=>{
+const moviesDiv=document.getElementById("movies");
+const trending=document.getElementById("trending");
+
+onValue(ref(db,"movies"),snap=>{
   let data=snap.val();
-  allMovies = data ? Object.values(data) : [];
-  render(allMovies);
+  movies=data?Object.values(data):[];
+  render(movies);
 });
 
 /* SEARCH */
-window.searchMovie = (v)=>{
-  let f = allMovies.filter(m => (m.name||"").toLowerCase().includes(v.toLowerCase()));
-  render(f);
+search.oninput=()=>{
+  let v=search.value.toLowerCase();
+  render(movies.filter(m=>(m.name||"").toLowerCase().includes(v)));
+};
+
+/* LIKE */
+window.like=(name)=>{
+  localStorage.getItem(name)?localStorage.removeItem(name):localStorage.setItem(name,true);
+  render(movies);
+};
+
+/* PLAY */
+window.play=(link,name)=>{
+  currentMovie=name;
+  modal.style.display="block";
+  player.src=link;
+  loadComments();
+};
+
+window.closeModal=()=>{
+  modal.style.display="none";
+  player.src="";
+};
+
+/* COMMENTS */
+function loadComments(){
+  onValue(ref(db,"comments/"+currentMovie),snap=>{
+    comments.innerHTML="";
+    snap.forEach(d=>comments.innerHTML+="<p>"+d.val().text+"</p>");
+  });
+}
+
+window.addComment=()=>{
+  push(ref(db,"comments/"+currentMovie),{text:commentInput.value});
 };
 
 /* LOGIN */
-document.addEventListener("keydown",e=>{
-  if(e.ctrlKey && e.shiftKey && e.key==="L"){
-    document.getElementById("login").style.display="block";
-  }
-});
-
 window.login=()=>{
-  if(u.value==="admin" && p.value==="1234"){
+  if(user.value==="admin" && pass.value==="1234"){
     admin.style.display="block";
     login.style.display="none";
   }
 };
+
+/* ADMIN SHORTCUT */
+document.addEventListener("keydown",e=>{
+  if(e.ctrlKey&&e.shiftKey&&e.key==="L"){
+    login.style.display="block";
+  }
+});
 </script>
 
 </body>

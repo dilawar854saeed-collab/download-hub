@@ -1,237 +1,126 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Download Hub Pro Max</title>
+<title>Download Hub Ultra</title>
 
 <style>
-body{
-  margin:0;
-  background:#0b132b;
-  font-family:sans-serif;
-  color:white;
-}
+body{margin:0;background:#0b132b;color:#fff;font-family:sans-serif}
+header{text-align:center;padding:20px;font-size:26px}
+.search{width:80%;margin:20px auto;padding:12px;border-radius:10px;border:none;display:block}
 
-/* HEADER */
-header{
-  text-align:center;
-  padding:20px;
-  font-size:26px;
-  font-weight:bold;
-}
+.slider{display:flex;overflow-x:auto;gap:15px;padding:20px}
 
-/* SEARCH */
-.search{
-  width:80%;
-  margin:20px auto;
-  padding:12px;
-  border-radius:10px;
-  border:none;
-  display:block;
-}
+.card{min-width:200px;background:#1c2541;border-radius:12px;overflow:hidden}
+.card img{width:100%;height:280px;object-fit:cover}
 
-/* SECTIONS */
-.section{
-  padding:20px;
-}
+.title{text-align:center;padding:8px}
+.btns{display:flex;justify-content:space-around;padding:10px}
 
-.slider{
-  display:flex;
-  overflow-x:auto;
-  gap:15px;
-}
+.btn{padding:6px 10px;border:none;border-radius:8px;color:#fff}
+.watch{background:#3a86ff}
+.download{background:#ff006e}
 
-/* CARD */
-.card{
-  min-width:200px;
-  background:#1c2541;
-  border-radius:15px;
-  overflow:hidden;
-  transition:.3s;
-}
+.admin{position:fixed;bottom:20px;right:20px;background:#111;padding:15px;border-radius:10px;display:none}
+.login{position:fixed;top:40%;left:50%;transform:translate(-50%,-50%);background:#111;padding:20px;display:none}
 
-.card:hover{
-  transform:scale(1.1);
-}
-
-.card img{
-  width:100%;
-  height:280px;
-  object-fit:cover;
-}
-
-.title{
-  text-align:center;
-  padding:8px;
-}
-
-.buttons{
-  display:flex;
-  justify-content:space-around;
-  padding:10px;
-}
-
-.btn{
-  padding:6px 10px;
-  border:none;
-  border-radius:8px;
-  cursor:pointer;
-}
-
-.watch{background:#3a86ff;color:white;}
-.download{background:#ff006e;color:white;}
-
-/* ADMIN */
-.admin{
-  position:fixed;
-  bottom:20px;
-  right:20px;
-  background:#111;
-  padding:15px;
-  border-radius:10px;
-  display:none;
-}
-
-.login{
-  position:fixed;
-  top:40%;
-  left:50%;
-  transform:translate(-50%,-50%);
-  background:#111;
-  padding:20px;
-  display:none;
-  border-radius:10px;
-}
-
-input{
-  width:100%;
-  margin:5px 0;
-  padding:8px;
-}
-
-/* MODAL PLAYER */
-.modal{
-  position:fixed;
-  top:0;
-  left:0;
-  width:100%;
-  height:100%;
-  background:rgba(0,0,0,0.9);
-  display:none;
-  justify-content:center;
-  align-items:center;
-}
-
-.modal iframe{
-  width:80%;
-  height:80%;
-}
+input{width:100%;margin:5px 0;padding:8px}
 </style>
 </head>
 
 <body>
 
-<header>🚀 Download Hub Pro Max</header>
+<header>🚀 Download Hub Ultra</header>
 
-<input class="search" placeholder="Search movies..." onkeyup="searchMovie(this.value)">
+<input class="search" placeholder="Search..." onkeyup="searchMovie(this.value)">
 
-<!-- TRENDING -->
-<div class="section">
-  <h2>🔥 Trending</h2>
-  <div class="slider" id="trending"></div>
-</div>
+<h2 style="padding-left:20px">🔥 Trending</h2>
+<div class="slider" id="trending"></div>
 
-<!-- ALL MOVIES -->
-<div class="section">
-  <h2>🎬 All Movies</h2>
-  <div class="slider" id="allMovies"></div>
-</div>
-
-<!-- LOGIN -->
-<div class="login" id="loginBox">
-  <h3>Admin Login</h3>
-  <input id="user" placeholder="Username">
-  <input id="pass" type="password" placeholder="Password">
-  <button onclick="login()">Login</button>
-</div>
+<h2 style="padding-left:20px">🎬 All Movies</h2>
+<div class="slider" id="all"></div>
 
 <!-- ADMIN -->
-<div class="admin" id="adminPanel">
-  <input id="name" placeholder="Movie Name">
-  <input id="link" placeholder="Telegram Link">
-  <input id="category" placeholder="Category (Action/Horror)">
-  <button onclick="addMovie()">Add Movie</button>
+<div class="login" id="login">
+<input id="u" placeholder="user">
+<input id="p" type="password" placeholder="pass">
+<button onclick="login()">Login</button>
 </div>
 
-<!-- PLAYER -->
-<div class="modal" id="player">
-  <iframe id="frame" src=""></iframe>
+<div class="admin" id="admin">
+<input id="name" placeholder="Movie name">
+<input id="link" placeholder="Telegram link">
+<button onclick="addMovie()">Add</button>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
 import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-database.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDPq7MhUJZsLXd-KseYkXY04aWVkoUtT9A",
-  authDomain: "downlode-hub-by-dilawar.firebaseapp.com",
-  databaseURL: "https://downlode-hub-by-dilawar-default-rtdb.firebaseio.com",
-  projectId: "downlode-hub-by-dilawar",
-};
+const app = initializeApp({
+  apiKey:"AIzaSyDP...",
+  authDomain:"downlode-hub-by-dilawar.firebaseapp.com",
+  databaseURL:"https://downlode-hub-by-dilawar-default-rtdb.firebaseio.com"
+});
 
-const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
+const API="9c2740d400d5fcab8638d58c8ce9454b";
 
-const API_KEY = "9c2740d400d5fcab8638d58c8ce9454b";
+let allMovies=[];
 
-let moviesData=[];
-
-/* POSTER API */
+/* 🔥 BETTER POSTER FIX */
 async function getPoster(name){
-  try{
-    let r = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&query=${name}`);
-    let d = await r.json();
-    if(d.results[0]?.poster_path){
-      return "https://image.tmdb.org/t/p/w500"+d.results[0].poster_path;
-    }
-  }catch(e){}
+  let r = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${API}&query=${name}&include_adult=false`);
+  let d = await r.json();
+
+  // smarter match
+  let best = d.results.find(x=>x.title?.toLowerCase().includes(name.toLowerCase()));
+
+  if(best?.poster_path){
+    return "https://image.tmdb.org/t/p/w500"+best.poster_path;
+  }
+
+  if(d.results[0]?.poster_path){
+    return "https://image.tmdb.org/t/p/w500"+d.results[0].poster_path;
+  }
+
   return "https://via.placeholder.com/300x450?text=No+Image";
 }
 
-/* ADD MOVIE */
-window.addMovie = async function(){
-  let name = document.getElementById("name").value;
-  let link = document.getElementById("link").value;
-  let category = document.getElementById("category").value;
+/* ADD */
+window.addMovie = async ()=>{
+  let name = document.getElementById("name").value.trim();
+  let link = document.getElementById("link").value.trim();
 
   let poster = await getPoster(name);
 
   push(ref(db,"movies"),{
-    name,link,poster,category
+    name:name,
+    link:link,
+    poster:poster
   });
-}
+};
 
-/* RENDER */
+/* RENDER FIX (ULTIMATE) */
 function render(arr){
-  let t = document.getElementById("trending");
-  let a = document.getElementById("allMovies");
+  let t=document.getElementById("trending");
+  let a=document.getElementById("all");
 
   t.innerHTML="";
   a.innerHTML="";
 
   arr.forEach((m,i)=>{
 
-    let title = m?.name || m?.title || "No Title";
-    let poster = m?.poster || m?.image || "https://via.placeholder.com/300x450?text=No+Image";
-    let link = m?.link || "#";
+    let title = m.name || m.title || "No Title";
+    let poster = m.poster || m.image || "https://via.placeholder.com/300x450?text=No+Image";
+    let link = m.link || "#";
 
     let card = `
     <div class="card">
       <img src="${poster}">
       <div class="title">${title}</div>
-      <div class="buttons">
-        <button class="btn watch" onclick="play('${link}')">Watch</button>
+      <div class="btns">
+        <button class="btn watch" onclick="window.open('${link}')">Watch</button>
         <button class="btn download" onclick="window.open('${link}')">Download</button>
       </div>
     </div>`;
@@ -241,48 +130,32 @@ function render(arr){
   });
 }
 
-/* PLAY VIDEO */
-window.play = function(link){
-  document.getElementById("player").style.display="flex";
-  document.getElementById("frame").src=link;
-}
-
-/* CLOSE PLAYER */
-document.getElementById("player").onclick=()=>{
-  document.getElementById("player").style.display="none";
-}
-
 /* LOAD */
 onValue(ref(db,"movies"), snap=>{
-  let data = snap.val();
-  moviesData = data ? Object.values(data) : [];
-  render(moviesData);
+  let data=snap.val();
+  allMovies = data ? Object.values(data) : [];
+  render(allMovies);
 });
 
 /* SEARCH */
-window.searchMovie=function(val){
-  let f = moviesData.filter(m =>
-    (m?.name || "").toLowerCase().includes(val.toLowerCase())
-  );
+window.searchMovie = (v)=>{
+  let f = allMovies.filter(m => (m.name||"").toLowerCase().includes(v.toLowerCase()));
   render(f);
-}
+};
 
 /* LOGIN */
 document.addEventListener("keydown",e=>{
   if(e.ctrlKey && e.shiftKey && e.key==="L"){
-    document.getElementById("loginBox").style.display="block";
+    document.getElementById("login").style.display="block";
   }
 });
 
-window.login=function(){
-  let u=document.getElementById("user").value;
-  let p=document.getElementById("pass").value;
-
-  if(u==="admin" && p==="1234"){
-    document.getElementById("adminPanel").style.display="block";
-    document.getElementById("loginBox").style.display="none";
+window.login=()=>{
+  if(u.value==="admin" && p.value==="1234"){
+    admin.style.display="block";
+    login.style.display="none";
   }
-}
+};
 </script>
 
 </body>
